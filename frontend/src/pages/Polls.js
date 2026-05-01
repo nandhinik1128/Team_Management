@@ -118,7 +118,22 @@ const Polls = () => {
                   <h3 style={styles.pollQuestion}>{poll.question}</h3>
                   <span style={styles.totalVotes}>{total} votes total</span>
                 </div>
-                <p style={styles.pollMeta}>By {poll.created_by_name}</p>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+  <p style={{ ...styles.pollMeta, margin: 0 }}>By {poll.created_by_name}</p>
+  {canCreate && (
+    <button style={{ background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
+      onClick={async () => {
+        if (!window.confirm('Delete this poll?')) return;
+        try {
+          await API.delete(`/polls/${poll.id}`);
+          toast.success('Poll deleted!');
+          fetchPolls();
+        } catch { toast.error('Failed!'); }
+      }}>
+      🗑️ Delete
+    </button>
+  )}
+</div>
 
                 <div style={styles.optionsList}>
                   {(poll.options || []).map(opt => {
