@@ -2,6 +2,8 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const normalizeRole = (role) => (role || 'member').toString().trim().toLowerCase();
+
 // Register
 exports.register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -37,6 +39,7 @@ exports.login = async (req, res) => {
         return res.status(400).json({ message: 'User not found!' });
       }
       const user = results[0];
+      const normalizedRole = normalizeRole(user.role);
       // Check password
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
@@ -44,7 +47,7 @@ exports.login = async (req, res) => {
       }
       // Generate token
       const token = jwt.sign(
-        { id: user.id, role: user.role },
+        { id: user.id, role: normalizedRole },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
@@ -55,7 +58,7 @@ exports.login = async (req, res) => {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: normalizedRole,
           ap_points: user.ap_points,
           rp_points: user.rp_points
         }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import Icon from '../components/Icon';
 import API from '../api/axios';
 import { toast } from 'react-toastify';
 
@@ -37,33 +38,33 @@ const { user } = useAuth();
     e.preventDefault();
     try {
       await API.post('/tasks', form);
-      toast.success('Task assigned successfully!');
+      toast.success('inniku avan sethan');
       setShowForm(false);
       setForm({ title: '', description: '', assigned_to: '', priority: 'medium', deadline: '' });
       fetchTasks();
     } catch (err) {
-      toast.error('Failed to assign task!');
+      toast.error('etho error pa!');
     }
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
       await API.put(`/tasks/${taskId}`, { status: newStatus });
-      toast.success('Status updated!');
+      toast.success('Update pannitom 👍');
       fetchTasks();
     } catch {
-      toast.error('Failed to update status!');
+      toast.error('Server konjam mood off la irukku.');
     }
   };
 
   const handleDelete = async (taskId) => {
-    if (!window.confirm('Delete this task?')) return;
+    if (!window.confirm('coinfor aha?')) return;
     try {
       await API.delete(`/tasks/${taskId}`);
-      toast.success('Task deleted!');
+      toast.success('Poof. Task gone.');
       fetchTasks();
     } catch {
-      toast.error('Failed to delete task!');
+      toast.error('Task-ku delete aaga interest illa.');
     }
   };
 
@@ -71,15 +72,15 @@ const { user } = useAuth();
   const allTasks = tasks;
 
   const priorityColor = {
-    high: { bg: '#FFEBEE', color: '#C62828' },
+    high: { bg: '#FFEBEE', color: 'var(--danger)' },
     medium: { bg: '#FFF8E1', color: '#F57F17' },
-    low: { bg: '#E8F5E9', color: '#2E7D32' },
+    low: { bg: 'var(--success-light)', color: 'var(--success)' },
   };
 
   const statusColor = {
-    'todo': { bg: '#F3E5F5', color: '#6A1B9A' },
-    'in-progress': { bg: '#FFF3E0', color: '#E65100' },
-    'completed': { bg: '#E8F5E9', color: '#2E7D32' },
+    'todo': { bg: 'var(--info-light)', color: 'var(--primary-dark)' },
+    'in-progress': { bg: 'var(--warning-light)', color: 'var(--primary-dark)' },
+    'completed': { bg: 'var(--success-light)', color: 'var(--success)' },
   };
 
   const TaskCard = ({ task }) => (
@@ -99,13 +100,9 @@ const { user } = useAuth();
       </div>
 
       <div style={styles.taskMeta}>
-        <span style={styles.metaItem}>
-          👤 {users.find(u => u.id === task.assigned_to)?.name || 'Unknown'}
-        </span>
+        <span style={styles.metaItem}><Icon title="user" /> {users.find(u => u.id === task.assigned_to)?.name || 'Unknown'}</span>
         {task.deadline && (
-          <span style={styles.metaItem}>
-            📅 {new Date(task.deadline).toLocaleDateString('en-IN')}
-          </span>
+          <span style={styles.metaItem}><Icon title="calendar" /> {new Date(task.deadline).toLocaleDateString('en-IN')}</span>
         )}
       </div>
 
@@ -130,7 +127,7 @@ const { user } = useAuth();
             style={styles.deleteBtn}
             onClick={() => handleDelete(task.id)}
           >
-            🗑️ Delete
+            <Icon title="delete" /> Delete
           </button>
         )}
       </div>
@@ -147,8 +144,8 @@ const { user } = useAuth();
             <h1 style={styles.heading}>Tasks</h1>
             <p style={styles.subheading}>
               {canAssign
-                ? 'Assign and manage tasks for your team'
-                : 'View and update your assigned tasks'}
+                ? 'velai irundha kodunga plzz..'
+                : 'First task mudichitu reels paakalam.'}
             </p>
           </div>
           {canAssign && (
@@ -156,7 +153,7 @@ const { user } = useAuth();
               style={styles.addBtn}
               onClick={() => setShowForm(!showForm)}
             >
-              {showForm ? '✕ Cancel' : '+ Assign Task'}
+              {showForm ? <><Icon title="close" /> Cancel</> : <><Icon title="add" /> Assign Task</>}
             </button>
           )}
         </div>
@@ -164,7 +161,7 @@ const { user } = useAuth();
         {/* Assign Task Form — only for strategist/captain/vice-captain */}
         {showForm && canAssign && (
           <div style={styles.formCard}>
-            <h3 style={styles.formTitle}>Assign New Task</h3>
+            <h3 style={styles.formTitle}>Pudhu task assign pannunga ✍️</h3>
             <form onSubmit={handleSubmit}>
               <div style={styles.formGrid}>
                 <div style={styles.field}>
@@ -172,7 +169,7 @@ const { user } = useAuth();
                   <input
                     style={styles.input}
                     name="title"
-                    placeholder="Enter task title"
+                    placeholder="Thambi pearu enna?"
                     value={form.title}
                     onChange={handleChange}
                     required
@@ -187,7 +184,7 @@ const { user } = useAuth();
                     onChange={handleChange}
                     required
                   >
-                    <option value="">Select member</option>
+                    <option value="">Bali aadu</option>
                     {users.map(u => (
                       <option key={u.id} value={u.id}>{u.name}</option>
                     ))}
@@ -222,7 +219,7 @@ const { user } = useAuth();
                 <textarea
                   style={{ ...styles.input, height: '80px', resize: 'vertical' }}
                   name="description"
-                  placeholder="Enter task description"
+                  placeholder="Velai payanbadu"
                   value={form.description}
                   onChange={handleChange}
                 />
@@ -236,12 +233,12 @@ const { user } = useAuth();
 
         {/* My Tasks */}
         <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>📋 My Tasks</h3>
+          <h3 style={styles.sectionTitle}><Icon title="pending" /> My Tasks</h3>
           {myTasks.length === 0 ? (
             <div style={styles.emptyBox}>
-              <p style={styles.emptyIcon}>🎉</p>
-              <p style={styles.emptyTitle}>No tasks for today!</p>
-              <p style={styles.emptyText}>You're all caught up. Take rest or help your teammates!</p>
+              <p style={styles.emptyIcon}><Icon title="check" /></p>
+              <p style={styles.emptyTitle}>Brain-ku konjam rest kudunga.</p>
+              <p style={styles.emptyText}>Nee all clear 😌 Konjam rest edhu illa teammates-ku help pannunga</p>
             </div>
           ) : (
             <div style={styles.taskGrid}>
@@ -253,10 +250,10 @@ const { user } = useAuth();
         {/* All Tasks — visible to captain, vice-captain, strategist, manager */}
         {(canAssign || isManager) && (
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>👥 All Team Tasks</h3>
+            <h3 style={styles.sectionTitle}><Icon title="members" /> All Team Tasks</h3>
             {allTasks.length === 0 ? (
               <div style={styles.emptyBox}>
-                <p style={styles.emptyText}>No tasks assigned yet.</p>
+                <p style={styles.emptyText}>Innum tasks assign aagala</p>
               </div>
             ) : (
               <div style={styles.taskGrid}>
@@ -278,15 +275,15 @@ const styles = {
     alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px'
   },
   heading: { margin: '0 0 6px', fontSize: '26px', fontWeight: '700', color: '#1A1A2E' },
-  subheading: { margin: 0, color: '#888', fontSize: '14px' },
+  subheading: { margin: 0, color: 'var(--muted-text)', fontSize: '14px' },
   addBtn: {
-    background: '#1565C0', color: '#fff', border: 'none',
+    background: 'var(--primary)', color: '#fff', border: 'none',
     borderRadius: '8px', padding: '10px 20px', fontSize: '14px',
     fontWeight: '600', cursor: 'pointer'
   },
   formCard: {
     background: '#fff', borderRadius: '12px', padding: '24px',
-    border: '1px solid #E8EDF5', marginBottom: '28px'
+    border: '1px solid var(--card-border)', marginBottom: '28px'
   },
   formTitle: { margin: '0 0 20px', fontSize: '16px', fontWeight: '600', color: '#333' },
   formGrid: {
@@ -297,12 +294,12 @@ const styles = {
   label: { fontSize: '13px', fontWeight: '600', color: '#444', marginBottom: '6px' },
   input: {
     padding: '10px 14px', borderRadius: '8px',
-    border: '1.5px solid #D0DCF0', fontSize: '14px',
-    color: '#333', outline: 'none', background: '#FAFCFF',
+    border: '1.5px solid var(--card-border)', fontSize: '14px',
+    color: '#333', outline: 'none', background: 'var(--muted-2)',
     fontFamily: "'Segoe UI', sans-serif"
   },
   submitBtn: {
-    background: '#1565C0', color: '#fff', border: 'none',
+    background: 'var(--primary)', color: '#fff', border: 'none',
     borderRadius: '8px', padding: '11px 28px', fontSize: '14px',
     fontWeight: '600', cursor: 'pointer', marginTop: '8px'
   },
@@ -315,35 +312,35 @@ const styles = {
   },
   taskCard: {
     background: '#fff', borderRadius: '12px', padding: '20px',
-    border: '1px solid #E8EDF5', display: 'flex',
+    border: '1px solid var(--card-border)', display: 'flex',
     flexDirection: 'column', gap: '12px'
   },
   taskHeader: { display: 'flex', gap: '12px', alignItems: 'flex-start' },
   taskTitle: { margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#1A1A2E' },
-  taskDesc: { margin: 0, fontSize: '13px', color: '#888', lineHeight: '1.4' },
+  taskDesc: { margin: 0, fontSize: '13px', color: 'var(--muted-text)', lineHeight: '1.4' },
   priorityBadge: {
     fontSize: '11px', fontWeight: '600', padding: '3px 10px',
     borderRadius: '20px', whiteSpace: 'nowrap', textTransform: 'capitalize'
   },
   taskMeta: { display: 'flex', gap: '16px', flexWrap: 'wrap' },
-  metaItem: { fontSize: '12px', color: '#666' },
+  metaItem: { fontSize: '12px', color: 'var(--muted-text)' },
   taskFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   statusSelect: {
     padding: '6px 12px', borderRadius: '20px', border: 'none',
     fontSize: '12px', fontWeight: '600', cursor: 'pointer', outline: 'none'
   },
   deleteBtn: {
-    background: '#FFEBEE', color: '#C62828', border: 'none',
+    background: '#FFEBEE', color: 'var(--danger)', border: 'none',
     borderRadius: '6px', padding: '6px 12px', fontSize: '12px',
     cursor: 'pointer', fontWeight: '600'
   },
   emptyBox: {
-    background: '#F8FAFF', borderRadius: '12px',
-    padding: '40px', textAlign: 'center', border: '1px dashed #D0DCF0'
+    background: 'var(--muted-2)', borderRadius: '12px',
+    padding: '40px', textAlign: 'center', border: '1px dashed var(--card-border)'
   },
   emptyIcon: { fontSize: '36px', margin: '0 0 8px' },
-  emptyTitle: { margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: '#555' },
-  emptyText: { margin: 0, fontSize: '13px', color: '#aaa' },
+  emptyTitle: { margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: 'var(--muted-text)' },
+  emptyText: { margin: 0, fontSize: '13px', color: 'var(--muted-text)' },
 };
 
 export default Tasks;

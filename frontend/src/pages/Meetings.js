@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import Icon from '../components/Icon';
 import API from '../api/axios';
 import { toast } from 'react-toastify';
 
@@ -53,18 +54,18 @@ const Meetings = () => {
         <h4 style={styles.meetingTitle}>{meeting.title}</h4>
         <p style={styles.meetingDesc}>{meeting.description}</p>
         <div style={styles.meetingMeta}>
-          <span style={styles.metaItem}>🕐 {new Date(meeting.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
-          <span style={styles.metaItem}>👤 {meeting.created_by_name}</span>
+          <span style={styles.metaItem}><Icon title="clock" /> {new Date(meeting.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+          <span style={styles.metaItem}><Icon title="user" /> {meeting.created_by_name}</span>
         </div>
       </div>
       <div style={styles.meetingActions}>
         {meeting.meeting_link && (
           <a href={meeting.meeting_link} target="_blank" rel="noreferrer" style={styles.joinBtn}>
-            Join Meet 🔗
+            <Icon title="link" /> Join Meet
           </a>
         )}
         {canCreate && (
-          <button style={styles.deleteBtn} onClick={() => handleDelete(meeting.id)}>🗑️</button>
+          <button style={styles.deleteBtn} onClick={() => handleDelete(meeting.id)}><Icon title="delete" /></button>
         )}
       </div>
     </div>
@@ -75,14 +76,14 @@ const Meetings = () => {
       <div style={styles.container}>
         <div style={styles.header}>
           <div>
-            <h1 style={styles.heading}>Meetings 📅</h1>
+            <h1 style={styles.heading}>Meetings <Icon title="calendar" /></h1>
             <p style={styles.subheading}>
               {canCreate ? 'Schedule and manage team meetings' : 'View upcoming team meetings'}
             </p>
           </div>
           {canCreate && (
             <button style={styles.addBtn} onClick={() => setShowForm(!showForm)}>
-              {showForm ? '✕ Cancel' : '+ Schedule Meeting'}
+              {showForm ? <><Icon title="close" /> Cancel</> : <><Icon title="add" /> Schedule Meeting</>}
             </button>
           )}
         </div>
@@ -115,10 +116,10 @@ const Meetings = () => {
         )}
 
         <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>🔔 Upcoming Meetings</h3>
+          <h3 style={styles.sectionTitle}><Icon title="bell" /> Upcoming Meetings</h3>
           {upcoming.length === 0 ? (
             <div style={styles.emptyBox}>
-              <p style={styles.emptyIcon}>📅</p>
+              <p style={styles.emptyIcon}><Icon title="calendar" /></p>
               <p style={styles.emptyTitle}>No upcoming meetings!</p>
               <p style={styles.emptyText}>
                 {canCreate ? 'Schedule a meeting using the button above.' : 'No meetings scheduled yet. Check back later!'}
@@ -129,7 +130,7 @@ const Meetings = () => {
 
         {past.length > 0 && (
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📂 Past Meetings</h3>
+            <h3 style={styles.sectionTitle}><Icon title="folder" /> Past Meetings</h3>
             {past.map(m => <MeetingCard key={m.id} meeting={m} />)}
           </div>
         )}
@@ -142,34 +143,34 @@ const styles = {
   container: { maxWidth: '1100px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' },
   heading: { margin: '0 0 6px', fontSize: '26px', fontWeight: '700', color: '#1A1A2E' },
-  subheading: { margin: 0, color: '#888', fontSize: '14px' },
-  addBtn: { background: '#1565C0', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
-  formCard: { background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid #E8EDF5', marginBottom: '28px' },
+  subheading: { margin: 0, color: 'var(--muted-text)', fontSize: '14px' },
+  addBtn: { background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+  formCard: { background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid var(--card-border)', marginBottom: '28px' },
   formTitle: { margin: '0 0 20px', fontSize: '16px', fontWeight: '600', color: '#333' },
   formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' },
   field: { display: 'flex', flexDirection: 'column' },
   label: { fontSize: '13px', fontWeight: '600', color: '#444', marginBottom: '6px' },
-  input: { padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #D0DCF0', fontSize: '14px', color: '#333', outline: 'none', background: '#FAFCFF', fontFamily: "'Segoe UI', sans-serif" },
-  submitBtn: { background: '#1565C0', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 28px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+  input: { padding: '10px 14px', borderRadius: '8px', border: '1.5px solid var(--card-border)', fontSize: '14px', color: '#333', outline: 'none', background: 'var(--muted-2)', fontFamily: "'Segoe UI', sans-serif" },
+  submitBtn: { background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 28px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
   section: { marginBottom: '32px' },
   sectionTitle: { margin: '0 0 16px', fontSize: '16px', fontWeight: '600', color: '#333' },
-  meetingCard: { background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #E8EDF5', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
+  meetingCard: { background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' },
   meetingLeft: {},
-  meetingDateBox: { width: '56px', height: '56px', background: '#E3F0FF', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
-  meetingDay: { margin: 0, fontSize: '20px', fontWeight: '700', color: '#1565C0' },
-  meetingMonth: { margin: 0, fontSize: '11px', color: '#1565C0', fontWeight: '600', textTransform: 'uppercase' },
+  meetingDateBox: { width: '56px', height: '56px', background: 'var(--muted)', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+  meetingDay: { margin: 0, fontSize: '20px', fontWeight: '700', color: 'var(--primary)' },
+  meetingMonth: { margin: 0, fontSize: '11px', color: 'var(--primary)', fontWeight: '600', textTransform: 'uppercase' },
   meetingInfo: { flex: 1 },
   meetingTitle: { margin: '0 0 4px', fontSize: '15px', fontWeight: '600', color: '#1A1A2E' },
-  meetingDesc: { margin: '0 0 8px', fontSize: '13px', color: '#888' },
+  meetingDesc: { margin: '0 0 8px', fontSize: '13px', color: 'var(--muted-text)' },
   meetingMeta: { display: 'flex', gap: '16px' },
-  metaItem: { fontSize: '12px', color: '#666' },
+  metaItem: { fontSize: '12px', color: 'var(--muted-text)' },
   meetingActions: { display: 'flex', gap: '8px', alignItems: 'center' },
-  joinBtn: { background: '#E8F5E9', color: '#2E7D32', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none' },
-  deleteBtn: { background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '14px', cursor: 'pointer' },
-  emptyBox: { background: '#F8FAFF', borderRadius: '12px', padding: '40px', textAlign: 'center', border: '1px dashed #D0DCF0' },
+  joinBtn: { background: 'var(--success-light)', color: 'var(--success)', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', textDecoration: 'none' },
+  deleteBtn: { background: '#FFEBEE', color: 'var(--danger)', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '14px', cursor: 'pointer' },
+  emptyBox: { background: 'var(--muted-2)', borderRadius: '12px', padding: '40px', textAlign: 'center', border: '1px dashed var(--card-border)' },
   emptyIcon: { fontSize: '36px', margin: '0 0 8px' },
-  emptyTitle: { margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: '#555' },
-  emptyText: { margin: 0, fontSize: '13px', color: '#aaa' },
+  emptyTitle: { margin: '0 0 8px', fontSize: '16px', fontWeight: '600', color: 'var(--muted-text)' },
+  emptyText: { margin: 0, fontSize: '13px', color: 'var(--muted-text)' },
 };
 
 export default Meetings;

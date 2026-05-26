@@ -2,15 +2,26 @@ import React, { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
+const normalizeRole = (role) => (role || 'member').toString().trim().toLowerCase();
+
+const normalizeUser = (user) => {
+  if (!user) return null;
+  return {
+    ...user,
+    role: normalizeRole(user.role),
+  };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem('user')) || null
+    normalizeUser(JSON.parse(localStorage.getItem('user')))
   );
 
   const login = (userData, token) => {
+    const normalizedUser = normalizeUser(userData);
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
   };
 
   const logout = () => {

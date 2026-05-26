@@ -22,9 +22,11 @@ const styles = {
   main: {
     marginLeft: '240px',
     flex: 1,
-    padding: '24px',
+    padding: '40px 40px 40px 36px',
     minHeight: '100vh',
     overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
     boxSizing: 'border-box'
   }
 };
