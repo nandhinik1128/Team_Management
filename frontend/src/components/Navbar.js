@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Icon from './Icon';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -13,14 +14,14 @@ const Navbar = () => {
 
   return (
     <nav style={styles.nav}>
-      <div style={styles.logo}>🏆 USCPP</div>
+      <div style={styles.logo}><Icon title="trophy" /> USCPP</div>
       <div style={styles.links}>
-        <Link to="/dashboard" style={styles.link}>Dashboard</Link>
-        <Link to="/tasks" style={styles.link}>Tasks</Link>
-        <Link to="/leaderboard" style={styles.link}>Leaderboard</Link>
-        <Link to="/profile" style={styles.link}>Profile</Link>
-        <span style={styles.user}>👤 {user?.name}</span>
-        <button onClick={handleLogout} style={styles.button}>Logout</button>
+        <Link to="/dashboard" className="lift-nav-item" style={styles.link}>Dashboard</Link>
+        <Link to="/tasks" className="lift-nav-item" style={styles.link}>Tasks</Link>
+        <Link to="/leaderboard" className="lift-nav-item" style={styles.link}>Leaderboard</Link>
+        <Link to="/profile" className="lift-nav-item" style={styles.link}>Profile</Link>
+        <span style={styles.user}><Icon title="user" /> {user?.name}</span>
+        <button onClick={handleLogout} className="lift-button" style={styles.button}>Logout</button>
       </div>
     </nav>
   );
@@ -31,12 +32,13 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '10px 30px',
+    padding: '12px 32px',
     backgroundColor: '#1a1a2e',
     color: 'white',
     position: 'sticky',
     top: 0,
-    zIndex: 1000
+    zIndex: 1000,
+    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.10)'
   },
   logo: {
     fontSize: '24px',
@@ -46,7 +48,7 @@ const styles = {
   links: {
     display: 'flex',
     alignItems: 'center',
-    gap: '20px'
+    gap: '18px'
   },
   link: {
     color: 'white',
@@ -61,8 +63,8 @@ const styles = {
     backgroundColor: '#e94560',
     color: 'white',
     border: 'none',
-    padding: '8px 16px',
-    borderRadius: '5px',
+    padding: '9px 16px',
+    borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '14px'
   }

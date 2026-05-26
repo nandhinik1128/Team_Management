@@ -1,8 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import Icon from '../components/Icon';
 import API from '../api/axios';
 import { toast } from 'react-toastify';
+import { motion } from 'framer-motion';
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 24, scale: 0.98 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      delay: index * 0.05,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  }),
+};
+
+const optionVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: (index) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.35,
+      delay: index * 0.045,
+      ease: 'easeOut',
+    },
+  }),
+};
 
 const Polls = () => {
   const { user } = useAuth();
@@ -10,19 +39,20 @@ const Polls = () => {
   const [showForm, setShowForm] = useState(false);
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
-  const [showVoters, setShowVoters] = useState(null);
 
   const canCreate = ['captain', 'vice-captain'].includes(user?.role);
 
-  useEffect(() => { fetchPolls(); }, []);
+  useEffect(() => {
+    fetchPolls();
+  }, []);
 
   const fetchPolls = () => {
-    API.get('/polls').then(r => setPolls(r.data)).catch(() => {});
+    API.get('/polls').then(r => setPolls(r.data || [])).catch(() => {});
   };
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    const validOptions = options.filter(o => o.trim());
+    const validOptions = options.filter(option => option.trim());
     if (validOptions.length < 2) return toast.error('Add at least 2 options!');
     try {
       await API.post('/polls', { question, options: validOptions });
@@ -31,7 +61,9 @@ const Polls = () => {
       setQuestion('');
       setOptions(['', '']);
       fetchPolls();
-    } catch { toast.error('Failed!'); }
+    } catch {
+      toast.error('Failed!');
+    }
   };
 
   const handleVote = async (pollId, optionId) => {
@@ -44,76 +76,107 @@ const Polls = () => {
     }
   };
 
-  const getTotalVotes = (options) =>
-    options.reduce((sum, o) => sum + Number(o.votes || 0), 0);
+  const getTotalVotes = (pollOptions) => pollOptions.reduce((sum, option) => sum + Number(option.votes || 0), 0);
 
   return (
     <Layout>
       <div style={styles.container}>
         <div style={styles.header}>
           <div>
-            <h1 style={styles.heading}>Polls & Voting 🗳️</h1>
+            <h1 style={styles.heading}>Polls & Voting <Icon title="poll" /></h1>
             <p style={styles.subheading}>Vote on team decisions</p>
           </div>
           {canCreate && (
-            <button style={styles.addBtn} onClick={() => setShowForm(!showForm)}>
-              {showForm ? '✕ Cancel' : '+ Create Poll'}
+            <button
+              style={styles.addBtn}
+              className="lift-button playful-button"
+              onClick={() => setShowForm(previous => !previous)}
+            >
+              {showForm ? <><Icon title="close" /> Cancel</> : <><Icon title="add" /> Create Poll</>}
             </button>
           )}
         </div>
 
         {showForm && (
-          <div style={styles.formCard}>
+          <div style={styles.formCard} className="lift-surface">
             <h3 style={styles.formTitle}>Create New Poll</h3>
             <form onSubmit={handleCreate}>
               <div style={styles.field}>
                 <label style={styles.label}>Question</label>
-                <input style={styles.input} placeholder="Ask your question..."
-                  value={question} onChange={e => setQuestion(e.target.value)} required />
+                <input
+                  style={styles.input}
+                  className="lift-input"
+                  placeholder="Ask your question..."
+                  value={question}
+                  onChange={e => setQuestion(e.target.value)}
+                  required
+                />
               </div>
               <div style={styles.field}>
                 <label style={styles.label}>Options</label>
-                {options.map((opt, i) => (
-                  <div key={i} style={styles.optionRow}>
-                    <input style={styles.input} placeholder={`Option ${i + 1}`}
-                      value={opt}
+                {options.map((option, index) => (
+                  <div key={index} style={styles.optionRow}>
+                    <input
+                      style={styles.input}
+                      className="lift-input"
+                      placeholder={`Option ${index + 1}`}
+                      value={option}
                       onChange={e => {
-                        const o = [...options];
-                        o[i] = e.target.value;
-                        setOptions(o);
-                      }} />
+                        const nextOptions = [...options];
+                        nextOptions[index] = e.target.value;
+                        setOptions(nextOptions);
+                      }}
+                    />
                     {options.length > 2 && (
-                      <button type="button" style={styles.removeBtn}
-                        onClick={() => setOptions(options.filter((_, idx) => idx !== i))}>
-                        ✕
+                      <button
+                        type="button"
+                        style={styles.removeBtn}
+                        onClick={() => setOptions(options.filter((_, optionIndex) => optionIndex !== index))}
+                      >
+                        <Icon title="close" />
                       </button>
                     )}
                   </div>
                 ))}
-                <button type="button" style={styles.addOptionBtn}
-                  onClick={() => setOptions([...options, ''])}>
-                  + Add Option
+                <button
+                  type="button"
+                  style={styles.addOptionBtn}
+                  className="lift-button playful-button"
+                  onClick={() => setOptions([...options, ''])}
+                >
+                  <Icon title="add" /> Add Option
                 </button>
               </div>
-              <button style={styles.submitBtn} type="submit">Create Poll</button>
+              <button style={styles.submitBtn} className="lift-button playful-button" type="submit">Create Poll</button>
             </form>
           </div>
         )}
 
         <div style={styles.pollsList}>
           {polls.length === 0 ? (
-            <div style={styles.emptyBox}>
-              <p style={styles.emptyIcon}>🗳️</p>
+            <div style={styles.emptyBox} className="lift-surface">
+              <p style={styles.emptyIcon}><Icon title="poll" /></p>
               <p style={styles.emptyTitle}>No polls yet!</p>
               <p style={styles.emptyText}>
                 {canCreate ? 'Create a poll to get team input.' : 'No polls created yet.'}
               </p>
             </div>
-          ) : polls.map(poll => {
+          ) : polls.map((poll, pollIndex) => {
             const total = getTotalVotes(poll.options || []);
             const myVote = poll.my_vote;
+
             return (
-              <div key={poll.id} style={styles.pollCard}>
+              <motion.div
+                key={poll.id}
+                style={styles.pollCard}
+                className="lift-surface"
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2, margin: '120px 0px 120px 0px' }}
+                custom={pollIndex}
+                whileHover={{ y: -4 }}
+              >
                 <div style={styles.pollHeader}>
                   <h3 style={styles.pollQuestion}>{poll.question}</h3>
                   <span style={styles.totalVotes}>{total} votes total</span>
@@ -136,30 +199,57 @@ const Polls = () => {
 </div>
 
                 <div style={styles.optionsList}>
-                  {(poll.options || []).map(opt => {
-                    const pct = total > 0 ? Math.round((Number(opt.votes) / total) * 100) : 0;
-                    const isMyVote = myVote === opt.id;
-                    const voters = opt.voter_names ? opt.voter_names.split(', ') : [];
+                  {(poll.options || []).map((option, optionIndex) => {
+                    const pct = total > 0 ? Math.round((Number(option.votes) / total) * 100) : 0;
+                    const isMyVote = myVote === option.id;
+                    const voters = option.voter_names ? option.voter_names.split(', ') : [];
+
                     return (
-                      <div key={opt.id} style={{ ...styles.optionItem, border: isMyVote ? '1.5px solid #1565C0' : '1.5px solid #E8EDF5', background: isMyVote ? '#F0F7FF' : '#F8FAFF' }}>
+                      <motion.div
+                        key={option.id}
+                        style={{
+                          ...styles.optionItem,
+                          border: isMyVote ? '1.5px solid var(--primary)' : '1.5px solid var(--card-border)',
+                          background: isMyVote ? 'linear-gradient(180deg, #F6FAFF, #EFF6FF)' : 'linear-gradient(180deg, #FFFFFF, #F8FAFC)',
+                        }}
+                        variants={optionVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        custom={optionIndex}
+                        whileHover={{ y: -2, scale: 1.01 }}
+                      >
                         <div style={styles.optionTop}>
-                          <span style={styles.optionText}>{opt.option_text}</span>
+                          <span style={styles.optionText}>{option.option_text}</span>
                           <div style={styles.optionRight}>
-                            <span style={{ ...styles.optionPct, color: isMyVote ? '#1565C0' : '#888' }}>
+                            <span style={{ ...styles.optionPct, color: isMyVote ? 'var(--primary)' : 'var(--muted-text)' }}>
                               {pct}%
                             </span>
-                            {isMyVote && <span style={styles.myVoteBadge}>✓ Your vote</span>}
+                            {isMyVote && (
+                              <span style={styles.myVoteBadge}><Icon title="check" /> Your vote</span>
+                            )}
                           </div>
                         </div>
 
                         <div style={styles.progressBar}>
-                          <div style={{ ...styles.progressFill, width: `${pct}%`, background: isMyVote ? '#1565C0' : '#90CAF9' }} />
+                          <motion.div
+                            style={{
+                              ...styles.progressFill,
+                              background: isMyVote
+                                ? 'linear-gradient(90deg, var(--primary), #4F8DFF)'
+                                : 'linear-gradient(90deg, #7AB8FF, #A6D4FF)',
+                            }}
+                            initial={{ width: 0 }}
+                            whileInView={{ width: `${pct}%` }}
+                            viewport={{ once: true, amount: 0.35 }}
+                            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.08 + optionIndex * 0.03 }}
+                          />
                         </div>
 
                         <div style={styles.optionBottom}>
                           <div style={styles.votersList}>
-                            {voters.slice(0, 3).map((name, i) => (
-                              <span key={i} style={styles.voterTag}>{name}</span>
+                            {voters.slice(0, 3).map((name, voterIndex) => (
+                              <span key={voterIndex} style={styles.voterTag}>{name}</span>
                             ))}
                             {voters.length > 3 && (
                               <span style={styles.moreVoters}>+{voters.length - 3} more</span>
@@ -169,16 +259,22 @@ const Polls = () => {
                             )}
                           </div>
                           <button
-                            style={{ ...styles.voteBtn, background: isMyVote ? '#1565C0' : '#E3F0FF', color: isMyVote ? '#fff' : '#1565C0' }}
-                            onClick={() => handleVote(poll.id, opt.id)}>
-                            {isMyVote ? '✓ Voted' : 'Vote'}
+                            className="lift-button playful-button"
+                            style={{
+                              ...styles.voteBtn,
+                              background: isMyVote ? 'var(--primary)' : 'var(--muted)',
+                              color: isMyVote ? '#fff' : 'var(--primary)',
+                            }}
+                            onClick={() => handleVote(poll.id, option.id)}
+                          >
+                            {isMyVote ? <><Icon title="check" /> Voted</> : 'Vote'}
                           </button>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -188,41 +284,45 @@ const Polls = () => {
 };
 
 const styles = {
-  container: { maxWidth: '800px' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' },
-  heading: { margin: '0 0 6px', fontSize: '26px', fontWeight: '700', color: '#1A1A2E' },
-  subheading: { margin: 0, color: '#888', fontSize: '14px' },
-  addBtn: { background: '#1565C0', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
-  formCard: { background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid #E8EDF5', marginBottom: '24px' },
-  formTitle: { margin: '0 0 20px', fontSize: '16px', fontWeight: '600', color: '#333' },
+  container: { width: '70%', maxWidth: '70%', margin: '0 auto', padding: '0 8px' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '18px' },
+  heading: { margin: '0 0 6px', fontSize: '30px', fontWeight: '800', color: '#101828', letterSpacing: '-0.02em' },
+  subheading: { margin: 0, color: 'var(--muted-text)', fontSize: '14px' },
+  addBtn: { background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '999px', padding: '10px 16px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 12px 22px rgba(15, 23, 42, 0.1)' },
+  formCard: { background: 'linear-gradient(180deg, #FFFFFF, #FBFDFF)', borderRadius: '22px', padding: '30px 34px', border: '1px solid rgba(148, 163, 184, 0.28)', marginBottom: '28px', boxShadow: '0 18px 46px rgba(15, 23, 42, 0.08)' },
+  formTitle: { margin: '0 0 20px', fontSize: '20px', fontWeight: '800', color: '#101828', letterSpacing: '-0.01em' },
   field: { marginBottom: '16px' },
-  label: { display: 'block', fontSize: '13px', fontWeight: '600', color: '#444', marginBottom: '8px' },
-  input: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #D0DCF0', fontSize: '14px', outline: 'none', background: '#FAFCFF', boxSizing: 'border-box', fontFamily: "'Segoe UI', sans-serif" },
-  optionRow: { display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' },
-  removeBtn: { background: '#FFEBEE', color: '#C62828', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer', fontWeight: '700' },
-  addOptionBtn: { background: '#E3F0FF', color: '#1565C0', border: 'none', borderRadius: '6px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginTop: '4px' },
-  submitBtn: { background: '#1565C0', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 28px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
-  pollsList: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  pollCard: { background: '#fff', borderRadius: '12px', padding: '24px', border: '1px solid #E8EDF5' },
-  pollHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '4px' },
-  pollQuestion: { margin: 0, fontSize: '17px', fontWeight: '700', color: '#1A1A2E', flex: 1 },
-  totalVotes: { fontSize: '12px', background: '#E3F0FF', color: '#1565C0', padding: '3px 10px', borderRadius: '20px', fontWeight: '600', whiteSpace: 'nowrap' },
-  pollMeta: { margin: '0 0 20px', fontSize: '12px', color: '#888' },
-  optionsList: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  optionItem: { borderRadius: '10px', padding: '14px', transition: 'all 0.2s' },
-  optionTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
-  optionText: { fontSize: '14px', fontWeight: '500', color: '#333' },
+  label: { display: 'block', fontSize: '13px', fontWeight: '700', color: '#344054', marginBottom: '8px' },
+  input: { width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1.5px solid var(--card-border)', fontSize: '14px', outline: 'none', background: '#fff', boxSizing: 'border-box', fontFamily: "'Segoe UI', sans-serif", boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)' },
+  optionRow: { display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'center' },
+  removeBtn: { background: '#FFEBEE', color: 'var(--danger)', border: 'none', borderRadius: '6px', padding: '8px 12px', cursor: 'pointer', fontWeight: '700' },
+  addOptionBtn: { background: 'var(--muted)', color: 'var(--primary)', border: 'none', borderRadius: '999px', padding: '8px 16px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', marginTop: '4px' },
+  submitBtn: { background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '999px', padding: '11px 28px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' },
+  pollsList: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' },
+  pollCard: { width: '100%', minWidth: 0, background: 'linear-gradient(180deg, #FFFFFF, #F9FBFF)', borderRadius: '24px', padding: '40px 42px', border: '1px solid rgba(148, 163, 184, 0.22)', boxShadow: '0 22px 56px rgba(15, 23, 42, 0.10)', position: 'relative', overflow: 'hidden', boxSizing: 'border-box' },
+  pollHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', marginBottom: '10px' },
+  pollQuestion: { margin: 0, fontSize: '20px', fontWeight: '800', color: '#101828', flex: 1, lineHeight: 1.3, letterSpacing: '-0.01em' },
+  totalVotes: { fontSize: '12px', background: 'var(--muted)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '999px', fontWeight: '700', whiteSpace: 'nowrap' },
+  pollMeta: { margin: '0 0 20px', fontSize: '12px', color: 'var(--muted-text)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 },
+  optionsList: { display: 'flex', flexDirection: 'column', gap: '16px' },
+  optionItem: { borderRadius: '18px', padding: '18px 18px 16px', transition: 'all 0.25s ease', boxShadow: '0 10px 24px rgba(15,23,42,0.04)' },
+  optionTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '12px' },
+  optionText: { fontSize: '16px', fontWeight: '700', color: '#101828' },
   optionRight: { display: 'flex', alignItems: 'center', gap: '8px' },
-  optionPct: { fontSize: '14px', fontWeight: '700' },
-  myVoteBadge: { fontSize: '11px', background: '#1565C0', color: '#fff', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' },
-  progressBar: { height: '6px', background: '#E8EDF5', borderRadius: '3px', marginBottom: '10px', overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: '3px', transition: 'width 0.3s' },
-  optionBottom: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  votersList: { display: 'flex', gap: '4px', flexWrap: 'wrap', flex: 1 },
-  voterTag: { fontSize: '11px', background: '#E3F0FF', color: '#1565C0', padding: '2px 8px', borderRadius: '10px', fontWeight: '500' },
-  moreVoters: { fontSize: '11px', color: '#888', fontStyle: 'italic' },
-  noVoters: { fontSize: '11px', color: '#aaa', fontStyle: 'italic' },
-  voteBtn: { border: 'none', borderRadius: '6px', padding: '6px 16px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' },
+  optionPct: { fontSize: '14px', fontWeight: '800' },
+  myVoteBadge: { fontSize: '11px', background: 'var(--primary)', color: '#fff', padding: '4px 10px', borderRadius: '999px', fontWeight: '700' },
+  progressBar: { height: '12px', background: 'rgba(15,23,42,0.08)', borderRadius: '999px', marginBottom: '14px', overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: '999px' },
+  optionBottom: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap' },
+  votersList: { display: 'flex', gap: '8px', flexWrap: 'wrap', flex: 1, minHeight: '34px', alignContent: 'flex-start' },
+  voterTag: { fontSize: '11px', background: 'var(--muted)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '999px', fontWeight: '700' },
+  moreVoters: { fontSize: '11px', color: 'var(--muted-text)', fontStyle: 'italic' },
+  noVoters: { fontSize: '11px', color: 'var(--muted-text)', fontStyle: 'italic' },
+  voteBtn: { border: 'none', borderRadius: '999px', padding: '9px 18px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 10px 18px rgba(15,23,42,0.08)' },
+  emptyBox: { background: 'linear-gradient(180deg, #FFFFFF, #FBFDFF)', borderRadius: '20px', padding: '38px', border: '1px solid rgba(148, 163, 184, 0.22)', textAlign: 'center', boxShadow: '0 16px 40px rgba(15,23,42,0.05)' },
+  emptyIcon: { margin: '0 0 10px', fontSize: '30px', color: 'var(--primary)' },
+  emptyTitle: { margin: '0 0 8px', fontSize: '17px', fontWeight: '800', color: '#101828' },
+  emptyText: { margin: 0, color: 'var(--muted-text)', fontSize: '14px' },
 };
 
 export default Polls;

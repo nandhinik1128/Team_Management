@@ -9,10 +9,10 @@ exports.getNotifications = (req, res) => {
 };
 
 exports.markAllRead = (req, res) => {
-  db.query('UPDATE notifications SET is_read = TRUE WHERE user_id = ?',
+  db.query('DELETE FROM notifications WHERE user_id = ?',
     [req.user.id], (err) => {
       if (err) return res.status(500).json({ message: 'Failed!' });
-      res.json({ message: 'All marked as read!' });
+      res.json({ message: 'All cleared!' });
     });
 };
 
